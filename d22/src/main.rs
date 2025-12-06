@@ -31,7 +31,6 @@ fn best_sequence2(numbers: &[i64]) -> i64 {
             *entry += value;
         }
     }
-
     union.values().copied().max().unwrap()
 }
 

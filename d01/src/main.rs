@@ -47,7 +47,7 @@ fn frequency_map(input: Vec<u32>) -> HashMap<u32, u32> {
 
 fn parse(input: &str) -> IResult<&str, (Vec<u32>, Vec<u32>)> {
     let (input, (v1, v2)) = fold_many0(
-        line,                        
+        line,
         || (Vec::new(), Vec::new()),
         |(mut acc1, mut acc2), (n1, n2)| {
             acc1.push(n1);

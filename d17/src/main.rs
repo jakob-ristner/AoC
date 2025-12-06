@@ -9,8 +9,9 @@ fn main() {
     let content = include_str!("input.txt");
     let (_, (instr, goal, regs)) = parse(content).unwrap();
     let p1 = printout(&run(&instr, &regs, None));
-    println!("Part 1: {}", p1);
     let p2 = part_2(&instr, &regs, &goal, goal.len() - 1, 0).unwrap();
+
+    println!("Part 1: {}", p1);
     println!("Part 2: {}", p2);
 }
 

@@ -1,7 +1,7 @@
 use super::*;
 
 pub fn parse(input: &str) -> (Map, Pos, Vec<Dir>) {
-    let (map, dirs) = input.split_once("\r\n\r\n").unwrap();
+    let (map, dirs) = input.split_once("\n\n").unwrap();
     let start = parse_start(map);
     let map = parse_map(map);
     let dirs = parse_dirs(dirs);
@@ -51,3 +51,4 @@ fn parse_start(input: &str) -> Pos {
     }
     unreachable!()
 }
+

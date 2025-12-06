@@ -16,7 +16,6 @@ type Dir = usize;
 type Pos = (i32, i32);
 type Map = HashMap<Pos, Obj>;
 
-
 fn main() {
     let content = include_str!("input.txt");
     let (map, start, dirs) = parse(content);
@@ -26,14 +25,11 @@ fn main() {
 }
 
 fn gps_sum(map: &Map) -> i32 {
-    map.iter().fold(0, |sum, (&(x, y), obj)| {
-        match obj {
-            Obj::Rock => sum + x + y * 100,
-            _ => sum,
-        }
+    map.iter().fold(0, |sum, (&(x, y), obj)| match obj {
+        Obj::Rock => sum + x + y * 100,
+        _ => sum,
     })
 }
-
 
 fn walk(map: Map, start: Pos, dirs: &[Dir]) -> Map {
     let mut pos = start;
