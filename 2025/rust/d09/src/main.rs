@@ -5,7 +5,7 @@ use nom::combinator::all_consuming;
 use nom::multi::separated_list1;
 use nom::sequence::{separated_pair, terminated};
 use nom::{IResult, Parser};
-use std::collections::HashMap;
+use rayon::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct Point {
@@ -23,100 +23,52 @@ fn point(input: &str) -> IResult<&str, Point> {
         .parse(input)
 }
 
-fn rectangle_inside(
-    p1: &Point,
-    p2: &Point,
-    vertices: &Vec<Point>,
-    cache: &mut HashMap<Point, bool>,
-) -> bool {
+fn rectangle_inside(p1: &Point, p2: &Point, vertices: &[Point]) -> bool {
     let min_x = p1.x.min(p2.x);
     let max_x = p1.x.max(p2.x);
     let min_y = p1.y.min(p2.y);
     let max_y = p1.y.max(p2.y);
 
-    for x in min_x..=max_x {
-        let p = Point { x, y: min_y };
-        if !*cache.entry(p).or_insert_with(|| point_inside(&p, vertices)) {
-            return false;
+    let n = vertices.len();
+    for i in 0..n {
+        let Point { x: x1, y: y1 } = vertices[i];
+        let Point { x: x2, y: y2 } = vertices[(i + 1) % n];
+        if (x1 <= min_x && x2 <= min_x)
+            || (x1 >= max_x && x2 >= max_x)
+            || (y1 <= min_y && y2 <= min_y)
+            || (y1 >= max_y && y2 >= max_y)
+        {
+            continue;
         }
-        let p = Point { x, y: max_y };
-        if !*cache.entry(p).or_insert_with(|| point_inside(&p, vertices)) {
-            return false;
-        }
-    }
-    for y in (min_y + 1)..max_y {
-        let p = Point { x: min_x, y };
-        if !*cache.entry(p).or_insert_with(|| point_inside(&p, vertices)) {
-            return false;
-        }
-        let p = Point { x: max_x, y };
-        if !*cache.entry(p).or_insert_with(|| point_inside(&p, vertices)) {
-            return false;
-        }
+        return false;
     }
     true
 }
 
-fn area(p1: &Point, p2: &Point) -> i64 {
+fn area((p1, p2): &(Point, Point)) -> i64 {
     ((p1.x - p2.x).abs() + 1) * ((p1.y - p2.y).abs() + 1)
 }
 
 fn main() {
-    let input = include_str!("../test.txt");
+    let input = include_str!("../input.txt");
     let (_, points) = parse(input).unwrap();
 
-    let mut cache = HashMap::new();
+    let areas: Vec<_> = points
+        .clone()
+        .into_iter()
+        .tuple_combinations()
+        .map(|(p1, p2)| (p1, p2, area(&(p1, p2))))
+        .sorted_by_key(|&(_, _, area)| std::cmp::Reverse(area))
+        .collect();
 
-    let max_1 = points
-        .iter()
-        .combinations(2)
-        .map(|pair| (pair[0], pair[1], area(pair[0], pair[1])))
-        .max_by_key(|(_, _, area)| *area);
-    println!("{:?}", max_1);
+    let (_, _, p1) = areas[0];
 
-    let max_2 = points
-        .iter()
-        .combinations(2)
-        .map(|pair| (pair[0], pair[1], area(pair[0], pair[1])))
-        .sorted_by_key(|(_, _, area)| std::cmp::Reverse(*area))
-        .find_map(|(p1, p2, area)| {
-            if rectangle_inside(p1, p2, &points, &mut cache) {
-                Some(area)
-            } else {
-                None
-            }
-        });
+    let p2 = areas
+        .par_iter()
+        .find_first(|(p1, p2, _)| rectangle_inside(p1, p2, &points))
+        .map(|(_, _, area)| *area)
+        .unwrap();
 
-    println!("{:?}", max_2);
-}
-
-fn point_inside(point: &Point, vertices: &Vec<Point>) -> bool {
-    let n = vertices.len();
-    let mut winding = 0;
-    let Point { x: px, y: py } = point;
-
-    for i in 0..n {
-        let Point { x: x1, y: y1 } = vertices[i];
-        let Point { x: x2, y: y2 } = vertices[(i + 1) % n];
-
-        let cross = (x1 - px) * (y2 - py) - (x2 - px) * (y1 - py);
-
-        if cross == 0 {
-            if x1.min(x2) <= *px && *px <= x1.max(x2) && y1.min(y2) <= *py && *py <= y1.max(y2) {
-                return true;
-            }
-        }
-
-        if y1 <= *py {
-            if y2 > *py && cross > 0 {
-                winding += 1;
-            }
-        } else {
-            if y2 <= *py && cross < 0 {
-                winding -= 1;
-            }
-        }
-    }
-
-    winding != 0
+    println!("Part 1: {}", p1);
+    println!("Part 2: {}", p2);
 }
