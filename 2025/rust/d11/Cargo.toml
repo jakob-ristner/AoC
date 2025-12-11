@@ -1,0 +1,8 @@
+[package]
+name = "d11"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+fxhash = "0.2.1"
+nom = "8.0.0"
