@@ -24,16 +24,16 @@ fn shapes(input: &str) -> IResult<&str, Vec<Shape>> {
     separated_list1(multispace0, shape).parse(input)
 }
 
-fn instance(shapes: &Vec<Shape>) -> impl Fn(&str) -> IResult<&str, Instance> + '_ {
+fn instance(shapes: &[Shape]) -> impl Fn(&str) -> IResult<&str, Instance> + '_ {
     move |input: &str| {
         let (input, (grid_width, grid_height)) =
             separated_pair(usize, char('x'), usize).parse(input)?;
         let (input, _) = (char(':'), space1).parse(input)?;
         let (input, counts) = separated_list1(space1, usize).parse(input)?;
         let shapes_with_counts = shapes
-            .clone()
-            .into_iter()
-            .zip(counts.into_iter())
+            .iter()
+            .copied()
+            .zip(counts)
             .filter(|&(_, count)| count > 0)
             .collect();
         Ok((

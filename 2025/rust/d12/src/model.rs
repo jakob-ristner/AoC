@@ -108,7 +108,7 @@ impl Shape {
     }
 
     fn to_option(
-        &self,
+        self,
         top_left_row: usize,
         top_left_col: usize,
         grid_width: usize,
@@ -178,19 +178,19 @@ impl Shape {
         }
 
         let mut variants = Vec::new();
-        let mut current = self.clone();
+        let mut current = *self;
         for _ in 0..4 {
             variants.push(current);
             current = rotate_90(current);
         }
-        current = reflect_horizontally(self.clone());
+        current = reflect_horizontally(*self);
         for _ in 0..4 {
             variants.push(current);
             current = rotate_90(current);
         }
         variants.sort();
         variants.dedup();
-        return variants;
+        variants
     }
 }
 

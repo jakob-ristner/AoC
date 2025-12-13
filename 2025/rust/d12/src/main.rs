@@ -7,6 +7,9 @@ use model::*;
 mod parser;
 use parser::parse;
 
+mod display;
+use display::*;
+
 /*
 * Can be made very much faster by just determining
 * the satisfiability on if grid area >= total shape area
@@ -21,7 +24,7 @@ fn main() {
         .par_iter()
         .filter_map(|instance| {
             let (instance, solution) = solve(instance)?;
-            print_solution(&solution, instance.grid_width, instance.grid_height);
+            print_solution_colored(&solution, instance.grid_width, instance.grid_height);
             println!();
             Some((instance, solution))
         })
@@ -83,30 +86,4 @@ fn solve(instance: &Instance) -> Option<(Instance, Vec<Vec<usize>>)> {
         return Some((instance.clone(), solution));
     }
     None
-}
-
-fn print_solution(solution: &Vec<Vec<usize>>, grid_width: usize, grid_height: usize) {
-    let alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let mut alphabet_index = 0;
-    let mut grid = vec![vec!['.'; grid_width]; grid_height];
-    for option in solution {
-        if option.len() > 1 {
-            let symbol = alphabet
-                .chars()
-                .nth(alphabet_index % alphabet.len())
-                .unwrap();
-            for &col in option {
-                if col <= grid_height * grid_width {
-                    let row = (col - 1) / grid_width;
-                    let col_idx = (col - 1) % grid_width;
-                    grid[row][col_idx] = symbol;
-                }
-            }
-            alphabet_index += 1;
-        }
-    }
-    for row in grid {
-        let line: String = row.into_iter().collect();
-        println!("{}", line);
-    }
 }
